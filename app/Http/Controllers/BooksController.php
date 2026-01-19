@@ -3,16 +3,33 @@
 namespace App\Http\Controllers;
 
 use App\Models\Books;
-use GrahamCampbell\ResultType\Success;
+use App\Helpers\ImageHelper;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+
+
 
 class BooksController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $books = Books::where('action', 'active')->latest()->paginate(5);
+        $books = Books::where('action', 'active');
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+
+            $books->where(function ($query) use ($search) {
+                $query->where('title', 'like', "%{$search}%")->orWhere('author', 'like', "%{$search}%");
+            });
+        }elseif($request->filled('lowPrice') && $request->filled('highPrice')) {
+            $books->whereBetween('price', [$request->lowPrice,$request->highPrice]);
+        }
+
+        $books = $books->latest()->paginate(5)->withQueryString();
+
         return view('create.index', compact('books'));
     }
+
     public function create()
     {
         $books = Books::where('action', 'active')->latest()->paginate(5);
@@ -27,6 +44,8 @@ class BooksController extends Controller
                 'price' => 'required|numeric|min:0',
                 'quantity' => 'required|numeric|min:0',
                 'publishedDate' => 'required',
+                'image' => 'required',
+
             ],
             [
                 'title.min' => 'Title must be at least 3 characters',
@@ -34,28 +53,38 @@ class BooksController extends Controller
                 'quantity.min' => 'Title must be at least 0 characters',
             ]
         );
+        if (Auth::user()) {
+            $authe = Auth::user()->id;
 
-        $authe = Auth()->user()->id;
+            if ($request->hasFile('image')) {
+                $imageName = ImageHelper::upload($request->file('image'), 'uploads/books');
 
-        $authe = Auth()->user()->id;
-        $part1 = rand(100, 999);
-        $part2 = rand(10, 99);
-        $part3 = rand(100, 999);
-        $part4 = rand(10, 99);
-        $part5 = rand(100, 999);
-        $part6 = Auth()->user()->id . rand(10, 99);
-        $isbn = $part1 . '-' . $part2 . '-' . $part3 . '-' . $part4 . '-' . $part5 . '-' . $part6;
-        Books::create([
-            'title' => $request->title,
-            'author' => $authe,
-            'isbn' => $isbn,
-            'price' => $request->price,
-            'quantity' => $request->quantity,
-            'published_date' => $request->publishedDate,
-            'created_at' => now(),
-        ]);
+                $authe = Auth::user()->id;
+                $part1 = rand(100, 999);
+                $part2 = rand(10, 99);
+                $part3 = rand(100, 999);
+                $part4 = rand(10, 99);
+                $part5 = rand(100, 999);
+                $part6 = Auth::user()->id . rand(10, 99);
+                $isbn = $part1 . '-' . $part2 . '-' . $part3 . '-' . $part4 . '-' . $part5 . '-' . $part6;
+                Books::create([
+                    'title' => $request->title,
+                    'author' => $authe,
+                    'isbn' => $isbn,
+                    'price' => $request->price,
+                    'quantity' => $request->quantity,
+                    'image' => $imageName,
+                    'published_date' => $request->publishedDate,
+                    'created_at' => now(),
+                ]);
 
-        return back()->with('success', 'Create Successfully');
+                return back()->with('success', 'Create Successfully');
+            }
+
+        } else {
+            return redirect()->route('login')->with('error', 'You must be logged in to create a book.');
+        }
+
 
 
     }
@@ -77,25 +106,50 @@ class BooksController extends Controller
             'publishedDate' => 'required',
         ]);
 
-        $authe = Auth()->user()->id;
+        $authe = Auth::user()->id;
         $part1 = rand(100, 999);
         $part2 = rand(10, 99);
         $part3 = rand(100, 999);
         $part4 = rand(10, 99);
         $part5 = rand(100, 999);
-        $part6 = Auth()->user()->id . rand(10, 99);
+        $part6 = Auth::user()->id . rand(10, 99);
         $isbn = $part1 . '-' . $part2 . '-' . $part3 . '-' . $part4 . '-' . $part5 . '-' . $part6;
-        Books::find($booksEdit->id)->update([
-            'title' => $request->title,
-            'author' => $authe,
-            'isbn' => $isbn,
-            'price' => $request->price,
-            'quantity' => $request->quantity,
-            'published_date' => $request->publishedDate,
-            'updated_at' => now(),
-        ]);
 
-        return back()->with('success', 'Update Successfully');
+
+
+        if ($request->hasFile('image')) {
+            $imageName = ImageHelper::upload($request->file('image'), 'uploads/books');
+            if ($booksEdit->image) {
+                ImageHelper::delete('uploads/books', $booksEdit->image);
+
+                Books::find($booksEdit->id)->update([
+                    'title' => $request->title,
+                    'author' => $authe,
+                    'isbn' => $isbn,
+                    'price' => $request->price,
+                    'quantity' => $request->quantity,
+                    'published_date' => $request->publishedDate,
+                    'image' => $imageName,
+                    'updated_at' => now(),
+                ]);
+
+                return back()->with('success', 'Update Successfully');
+            }
+
+        } else {
+            Books::find($booksEdit->id)->update([
+                'title' => $request->title,
+                'author' => $authe,
+                'isbn' => $isbn,
+                'price' => $request->price,
+                'quantity' => $request->quantity,
+                'published_date' => $request->publishedDate,
+                'updated_at' => now(),
+            ]);
+
+            return back()->with('success', 'Update Successfully');
+        }
+
 
 
     }
@@ -108,37 +162,6 @@ class BooksController extends Controller
             'updated_at' => now(),
         ]);
         return back()->with('success', 'Delete Successfully');
-    }
-
-    public function search_title(Request $request)
-    {
-
-        $request->validate(['search' => 'required']);
-        $search = $request->input('search');
-
-        $books = Books::when($search, function ($query, $search) {
-            $query->where('action', 'active')->where('title', 'like', "%{$search}%")
-                ->orWhere('author', 'like', "%{$search}%");
-        })->paginate(10);
-
-        return view('create.index', compact('books'));
-
-    }
-
-    public function search_price(Request $request)
-    {
-        $request->validate([
-            'lowPrice' => 'required',
-            'highPrice' => 'required',
-        ]);
-
-        $lowPrice = $request->input('lowPrice');
-        $highPrice = $request->input('highPrice');
-
-        $books = Books::where('action', 'active')->whereBetween('price', [$lowPrice, $highPrice])
-            ->paginate(10);
-        return view('create.index', compact('books'));
-
     }
 
 

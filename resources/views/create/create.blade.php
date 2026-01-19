@@ -9,7 +9,7 @@
                         <label for="staticEmail" class="col-sm-2 col-form-label">Create form</label>
 
                     </div>
-                    <form action="{{ route('books.store') }}" method="POST">
+                    <form action="{{ route('books.store') }}" method="POST" enctype="multipart/form-data">
                         @csrf
                         <div class="mb-3 row">
                             <div class="col-6">
@@ -23,12 +23,6 @@
                                 </div>
                             </div>
 
-                            {{-- <div class="col-6">
-                                <label for="inputPassword" class="col-sm-2 col-form-label">Auther</label>
-                                <div class="col-sm-10">
-                                    <input type="text" class="form-control" name="auther" value="{{ Old('auther') }}">
-                                </div>
-                            </div> --}}
 
                             <div class="col-6">
                                 <label for="inputPassword" class="col-sm-2 col-form-label">Price</label>
@@ -62,6 +56,19 @@
                                     @enderror
                                 </div>
                             </div>
+                            <div class="col-6 mt-4">
+
+                                <picture>
+                                    <img id="port_image" src="../../public/defualt/defualt.jpg" alt=""
+                                        style="width:100%; height: 200px; object-fit:contain;">
+                                </picture><br>
+
+                                <label class="form-label">Image</label>
+                                <input
+                                    onchange="document.getElementById('port_image').src =window.URL.createObjectURL(this.files[0]) "
+                                    type="file" name="image" class="form-control hudai @error('image') is-invalid @enderror"
+                                    aria-describedby="emailHelp">
+                            </div>
 
                             <div class="col-6 mt-3">
                                 <button class="btn btn-success">Save</button>
@@ -79,7 +86,7 @@
                         <label for="staticEmail" class="col-sm-2 col-form-label">Update form</label>
 
                     </div>
-                    <form action="{{ route('books.update', $booksEdit->id) }}" method="POST">
+                    <form action="{{ route('books.update', $booksEdit->id) }}" method="POST" enctype="multipart/form-data">
                         @csrf
                         <div class="mb-3 row">
                             <div class="col-6">
@@ -94,12 +101,6 @@
                                 </div>
                             </div>
 
-                            {{-- <div class="col-6">
-                                <label for="inputPassword" class="col-sm-2 col-form-label">Auther</label>
-                                <div class="col-sm-10">
-                                    <input type="text" class="form-control" name="auther" value="{{ Old('auther') }}">
-                                </div>
-                            </div> --}}
 
                             <div class="col-6">
                                 <label for="inputPassword" class="col-sm-2 col-form-label">Price</label>
@@ -135,6 +136,21 @@
                                 </div>
                             </div>
 
+
+                            <div class="col-6 mt-4">
+
+                                <picture>
+                                    <img id="port_image" src="{{ asset('uploads/books/' . $booksEdit->image) }}" alt=""
+                                        style="width:100%; height: 200px; object-fit:contain;">
+                                </picture><br>
+
+                                <label class="form-label">Image</label>
+                                <input
+                                    onchange="document.getElementById('port_image').src =window.URL.createObjectURL(this.files[0]) "
+                                    type="file" name="image" class="form-control hudai @error('image') is-invalid @enderror"
+                                    aria-describedby="emailHelp" value="{{  $booksEdit->image }}">
+                            </div>
+
                             <div class="col-6 mt-3">
                                 <button class="btn btn-success">Save</button>
                             </div>
@@ -152,6 +168,7 @@
                 <thead>
                     <tr>
                         <th>S.L</th>
+                        <th>Image</th>
                         <th>Title</th>
                         <th>Auther</th>
                         <th>ISBN</th>
@@ -166,8 +183,9 @@
                     @forelse ($books as $view)
                         <tr>
                             <td>{{ $loop->index + 1 }}</td>
+                            <td><img src="{{ asset('uploads/books/' . $view->image) }}" alt="Book Image" width="50"></td>
                             <td>{{ $view->title }}</td>
-                            <td>{{ $view->author }}</td>
+                            <td>{{ $view->userFind->name }}</td>
                             <td>{{ $view->isbn }}</td>
                             <td>{{ $view->price }}</td>
                             <td>

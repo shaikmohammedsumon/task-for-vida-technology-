@@ -3,40 +3,36 @@
     <section>
         <div class="row  m-3">
             <div class="card p-3 ">
-                <div class="d-flex gap-3">
-                    <form action="{{ route('books.search.title') }}" method="POST">
-                        @csrf
-                        
+                <form action="{{ route('books') }}" method="GET">
+                    @csrf
+                    <div class="d-flex gap-3">
+
                         <div class="d-flex gap-3">
-                            
                             <div class="d-flex align-items-center gap-2">
                                 <input type="text" class="form-control @error('search') is-invalid @enderror" name="search"
-                                placeholder="Search title or author" style="max-width: 250px;">
-                                <button class="btn btn-success">Search</button>
+                                    placeholder="Search title or author" style="max-width: 250px;"
+                                    value="{{ request('search') }}">
+                                {{-- <button class="btn btn-success">Search</button> --}}
                             </div>
                         </div>
-                    </form>
 
-                    <form action="{{ route('books.search.price') }}" method="POST">
-                        @csrf
 
                         <div class="d-flex gap-3">
-                            
-                            
-                        <div class="d-flex align-items-center gap-2">
-                            <input type="number" class="form-control @error('lowPrice') is-invalid @enderror"
-                            name="lowPrice" placeholder="0" style="max-width: 150px;">
-                            
-                            to
-                            
-                            <input type="number" class="form-control @error('highPrice') is-invalid @enderror"
-                            name="highPrice" placeholder="999" style="max-width: 150px;">
-                            <button class="btn btn-success">Search</button>
+                            <div class="d-flex align-items-center gap-2">
+                                <input type="number" class="form-control @error('lowPrice') is-invalid @enderror"
+                                    name="lowPrice" placeholder="0" style="max-width: 150px;"
+                                    value="{{ request('lowPrice') }}">
+
+                                to
+                                <input type="number" class="form-control @error('highPrice') is-invalid @enderror"
+                                    name="highPrice" placeholder="999" style="max-width: 150px;"
+                                    value="{{ request('highPrice') }}">
+                                <button class="btn btn-success">Search</button>
+                            </div>
+
                         </div>
-                        
-                    </div>
                 </form>
-            </div>
+
 
             </div>
         </div>
@@ -47,6 +43,7 @@
                 <thead>
                     <tr>
                         <th>S.L</th>
+                        <th>Image</th>
                         <th>Title</th>
                         <th>Auther</th>
                         <th>ISBN</th>
@@ -59,8 +56,9 @@
                     @forelse ($books as $view)
                         <tr>
                             <td>{{ $loop->index + 1 }}</td>
+                            <td><img src="{{ asset('uploads/books/' . $view->image) }}" alt="Book Image" width="50"></td>
                             <td>{{ $view->title }}</td>
-                            <td>{{ $view->author }}</td>
+                            <td>{{ $view->userFind->name }}</td>
                             <td>{{ $view->isbn }}</td>
                             <td>{{ $view->price }}</td>
                             <td>

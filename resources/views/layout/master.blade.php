@@ -25,6 +25,12 @@
                     <li>
                         <a href="{{ route('books.create') }}">Create</a>
                     </li>
+                    <li>
+                        <form action="{{ route('logout') }}" method="POST">
+                            @csrf
+                            <button type="submit" style="border: none; background: none;">Logout</button>
+                        </form>
+                    </li>
                 </ul>
             </div>
             <div class="right-side">

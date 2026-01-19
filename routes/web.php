@@ -8,20 +8,19 @@ Route::get('/', function () {
 });
 
 
-Route::get('/all-books',[BooksController::class,'index'])->name("books");
-Route::get('/books/create',[BooksController::class,'create'])->name("books.create");
-Route::post('/create/store',[BooksController::class,'store'])->name("books.store");
-Route::get('/books/edit/{id}',[BooksController::class,'Edit'])->name("books.edit");
-Route::post('/books/update/{id}',[BooksController::class,'update'])->name("books.update");
-Route::get('/books/delete/{id}',[BooksController::class,'delete'])->name("books.delete");
-
-Route::post('/books/search/title',[BooksController::class,'search_title'])->name("books.search.title");
-Route::post('/books/search/price',[BooksController::class,'search_price'])->name(name: "books.search.price");
+Route::group(['middleware' => ['auth']], function () {
+    Route::get('/all-books', [BooksController::class, 'index'])->name("books");
+    Route::get('/books/create', [BooksController::class, 'create'])->name("books.create");
+    Route::post('/create/store', [BooksController::class, 'store'])->name("books.store");
+    Route::get('/books/edit/{id}', [BooksController::class, 'Edit'])->name("books.edit");
+    Route::post('/books/update/{id}', [BooksController::class, 'update'])->name("books.update");
+    Route::get('/books/delete/{id}', [BooksController::class, 'delete'])->name("books.delete");
 
 
+});
 
 
 
 Auth::routes();
 
-Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+// Route::get('/home', action: [App\Http\Controllers\HomeController::class, 'index'])->name('home');

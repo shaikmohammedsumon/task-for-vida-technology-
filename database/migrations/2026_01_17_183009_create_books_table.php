@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string("price");
             $table->string("quantity");
             $table->string("published_date");
+            $table->string("image");
             $table->string("action")->default('active');
             $table->timestamps();
         });
