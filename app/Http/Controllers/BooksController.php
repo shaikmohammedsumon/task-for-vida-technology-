@@ -17,12 +17,15 @@ class BooksController extends Controller
 
         if ($request->filled('search')) {
             $search = $request->search;
+            $books->where('title', 'like', "%{$search}%")
+                ->orWhereHas('author', function ($query) use ($search) {
+                    $query->where('name', 'like', "%{$search}%");
+                });
 
-            $books->where(function ($query) use ($search) {
-                $query->where('title', 'like', "%{$search}%")->orWhere('author', 'like', "%{$search}%");
-            });
-        }elseif($request->filled('lowPrice') && $request->filled('highPrice')) {
-            $books->whereBetween('price', [$request->lowPrice,$request->highPrice]);
+        } 
+        
+        if ($request->filled('lowPrice') && $request->filled('highPrice')) {
+            $books->whereBetween('price', [$request->lowPrice, $request->highPrice]);
         }
 
         $books = $books->latest()->paginate(5)->withQueryString();

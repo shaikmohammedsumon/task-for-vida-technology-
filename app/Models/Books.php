@@ -12,4 +12,9 @@ class Books extends Model
     {
         return $this->hasOne(User::class, 'id', 'author');
     }
+
+    public function author()
+    {
+        return $this->belongsTo(User::class, 'author', 'id');
+    }
 }
